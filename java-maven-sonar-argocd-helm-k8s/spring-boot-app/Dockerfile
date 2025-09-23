@@ -1,13 +1,17 @@
-# You can change this base image to anything else
-# But make sure to use the correct version of Java
-FROM adoptopenjdk/openjdk11:alpine-jre
+# Base image: Maven with Java 21 (Temurin)
+FROM maven:3.9.6-eclipse-temurin-21
 
-# Simply the artifact path
-ARG artifact=target/spring-boot-web.jar
+# Install Docker CLI and git (git is usually required in Jenkins pipelines)
+USER root
+RUN apt-get update && \
+    apt-get install -y docker.io git && \
+    rm -rf /var/lib/apt/lists/*
 
-WORKDIR /opt/app
+# Default workdir
+WORKDIR /workspace
 
-COPY ${artifact} app.jar
+# Print versions for debugging
+RUN java -version && mvn -v && docker --version && git --version
 
-# This should not be changed
-ENTRYPOINT ["java","-jar","app.jar"]
+# Keep the container alive for Jenkins agent
+CMD ["tail", "-f", "/dev/null"]
